@@ -33,7 +33,19 @@ knitr::kable(head(arrange(evalCntPerPkg, desc(freq)) , 20) , col.names = c("Pack
 #plot histogram for number of projects vs number of evals
 ggplot(evalCntPerPkg, aes(freq)) + geom_density()+ scale_x_log10() + labs(y="Number of projects (density)", x="Number of Evals - (log scaled)", title="Evals distribution in the packages")
 ggplot(evalCntPerPkg , aes(freq)) + geom_histogram(bins=50) + scale_x_log10() + labs(y="Number of projects", x="Number of Evals", title="Evals distribution in the packages - histogram")
-ggplot(evalCntPerPkg , aes(freq)) + geom_boxplot() + labs(y="Number of Evals", x="Packages", title="Evals distribution in the packages - boxplot")
+ggplot(evalCntPerPkg , aes(x = "" , y = freq)) + geom_boxplot() + labs(y="Number of Evals", x="Packages", title="Evals distribution in the packages - boxplot")
+
+##outliers
+outlyingVals <- boxplot(evalCntPerPkg$freq, plot = F)$out
+outlyingRows <- filter(evalCntPerPkg, freq %in% outlyingVals)
+##top outliers
+knitr::kable(head(arrange(outlyingRows, desc(freq)) , 5) , col.names = c("Package" , "Number of evals"))
+##bottom outliers
+knitr::kable(head(arrange(outlyingRows, freq) , 5) , col.names = c("Package" , "Number of evals"))
+
+#plotting without the outliers
+evalCntPerPkgMod <- evalCntPerPkg[ !(evalCntPerPkg$freq %in% outlyingVals), ]
+ggplot(evalCntPerPkgMod , aes(x = "" , y = freq)) + geom_boxplot() + labs(y="Number of Evals", x="Packages", title="Evals distribution in the packages - boxplot (outliers removed)")
 
 # Eval occurences per use
 knitr::kable(plyr::count(evaldf , "use") , col.names = c("Usage" , "Frequency"))
