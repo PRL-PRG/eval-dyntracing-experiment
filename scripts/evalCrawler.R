@@ -94,20 +94,18 @@ returnArgs <- function(ind, str, regex)
 			bCount <- bCount + 1
 		else if(identical(str[i], ')') & switch1 & switch2 & switch3)
 			bCount <- bCount - 1
-		else if( identical(str[i], '#') & switch1 & switch2){
+		else if(identical(str[i], '#') & switch1 & switch2)
 			switch3 <- FALSE
-		}
-		else if(identical(str[i], '\n') & !switch3){
+		else if(identical(str[i], '\n') & !switch3)
 			switch3 <- TRUE
-		}
-		else if( identical(str[i], '"') & switch3 & switch2)
+		else if(identical(str[i], '"') & switch3 & switch2)
 		{ 
 			if(!identical(str[i-1], '\\'))
 				switch1 <- ! switch1	
 			else if(identical(str[i-2], '\\'))
 				switch1 <- ! switch1
 		}
-		else if( identical(str[i], '\'') & switch1 & switch3)
+		else if(identical(str[i], '\'') & switch1 & switch3)
 		{ 
 			if(!identical(str[i-1], '\\'))
 				switch2 <- ! switch2	
@@ -130,17 +128,16 @@ returnEvalsFromString <- function(lineNumber, str, pkg, path, lineCount, regex)
 	
 	if(length(evalIndcs) < 2){
 		evalTable <- data_frame(pkg = character(),
-								path = character(),
-								lineNumber = integer(),
-								use = character(),
-								arguments = character(),
-								lineCount = integer(),
-								charCount = integer())
+					path = character(),
+					lineNumber = integer(),
+					use = character(),
+					arguments = character(),
+					lineCount = integer(),
+					charCount = integer())
 		return(evalTable)
 	}
 	else{
 		args <- lapply(evalIndcs, returnArgs, str = str, regex = regex)
-
 		evalTable <- data_frame(
 			pkg,
 			path,
