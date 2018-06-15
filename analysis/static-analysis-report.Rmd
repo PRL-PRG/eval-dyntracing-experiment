@@ -18,7 +18,7 @@ library(tools)
 
 ## Load the data
 Usage of the function eval in R-packages.
-To get evals.csv, run - Rscript evalCrawler.R /mnt/nvme0/R/CRAN-extracted
+To get evals.csv, run - Rscript eval-crawler.R /mnt/nvme0/R/CRAN-extracted
 ```{r}
 evaldf <- read_csv("evals.csv")
 ```
@@ -89,7 +89,7 @@ evalCntPerPkg %>%
 
 ```{r}
 tribble(
-  ~A,~B,
+  ~Metric,~Value,
   "Total Number of eval occurences combined" , nrow(evaldf),
   "Total Number of packages considered" , "12574",  #the latter is from the output of the evalCrawler.R script
   "Number of packages using eval" , nrow(unique.data.frame(evaldf["pkg"]))
@@ -128,7 +128,7 @@ slocdf <- read_csv("sloc.csv")
 
 lineCountPerPkg <-
 	slocdf %>%
-  filter(language == "R") %>%
+	filter(language == "R") %>%
   select(pkg = package , code)
 
 lineNdEvalPerPkg <- merge( evalCntPerPkg , lineCountPerPkg , all = FALSE)
