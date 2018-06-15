@@ -152,4 +152,4 @@ returnEvalsFromString <- function(lineNumber, str, pkg, path, lineCount, regex)
 
 #execute main
 main(commandArgs(trailingOnly = T)[1])
-#To run -> sudo Rscript evalCrawlerFormatted.R /mnt/nvme0/R/CRAN-extracted
+#To run -> sudo Rscript evalCrawler.R /mnt/nvme0/R/CRAN-extracted (library-path)
