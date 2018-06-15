@@ -3,25 +3,17 @@ title: "Eval Static Analysis"
 author: "Chakshu Goyal"
 date: "07/06/2018"
 output:
-  html_document: default
+  html_document:
+    df_print: paged
+  html_notebook: default
   pdf_document: default
 ---
 
-## 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 library(ggplot2)
 library(tidyverse)
 library(tools)
-#knitr::kable(head(arrange(evalCntPerPkg, desc(freq)) , 20) , col.names = c("Package" , "Number of evals"))
-#knitr::kable(head(arrange(outlyingRows, desc(freq)) , 5) , col.names = c("Package" , "Number of evals"))
-#lineCountPerPkg <- 
-#  lineCountPerFile %>%
-#    group_by(pkg) %>%
-#      summarise(lineCount = sum(lineCount), charCount = sum(charCount))
-#lineNdEvalCountPerPkg <- merge(lineCountPerPkg, evalCntPerPkg)
-#evalCntPerPkgLeft <- evalCntPerPkg[ !(evalCntPerPkg$pkg %in% lineCountPerPkg$pkg) , ]
-#evalCntPerPkgLeft
 ```
 
 ## Load the data
@@ -42,21 +34,18 @@ ggplot(evaldf , aes(pkg)) +
 Top 20 packages using eval
 ```{r}
 evalCntPerPkg <- dplyr::count(evaldf, pkg)
-knitr::kable(
-  evalCntPerPkg %>%
+
+evalCntPerPkg %>%
   top_n(20, wt=n) %>%
-  arrange(desc(n)))
+  arrange(desc(n))
 ```
 
-Eval distribution in packages - density and histogram plots
+Eval distribution in packages - histogram plot
 ```{r}
-ggplot(evalCntPerPkg, aes(n)) + 
-  geom_density()+ scale_x_log10() + 
-  labs(y="Number of projects (density)", x="Number of Evals - (log scaled)", title="Evals distribution in the packages")
-ggplot(evalCntPerPkg , aes(n)) + 
-  geom_histogram(bins=50) + 
-  scale_x_log10() + 
-  labs(y="Number of projects", x="Number of Evals", title="Evals distribution in the packages - histogram")
+ggplot(evalCntPerPkg , aes(n)) +
+  geom_histogram(bins=50) +
+  scale_x_log10() +
+  labs(y="Number of projects", x="Number of Evals (log-scaled)", title="Evals distribution in the packages - histogram")
 ```
 
 Exploring outliers
@@ -75,25 +64,23 @@ evalCountPerFile <- dplyr::count(evaldf, path)
 Top Outliers
 ```{r}
 ##top outliers
-knitr::kable(
-  evalCountPerFile %>% 
-    top_n(5, wt=n) %>% 
-    arrange(desc(n)))
+evalCountPerFile %>% 
+  top_n(5, wt=n) %>% 
+  arrange(desc(n))
 ```
 
 Bottom Outliers
 ```{r}
-knitr::kable(
-  evalCountPerFile %>% 
-    top_n(5, wt=n) %>% 
-    arrange(n))
-#knitr::kable(head(arrange(outlyingRows, n) , 5) , col.names = c("Package" , "Number of evals"))
+evalCountPerFile %>% 
+  top_n(5, wt=n) %>% 
+  arrange(n)
 ```
 
 Plotting without outliers
 ```{r}
-evalCntPerPkgMod <- evalCntPerPkg[ !(evalCntPerPkg$n %in% outlyingVals), ]
-ggplot(evalCntPerPkgMod , aes(x = "" , y = n)) +
+evalCntPerPkg %>%
+  filter(!(n %in% outlyingVals)) %>%
+  ggplot(aes(x = "" , y = n)) +
   geom_boxplot() +
   labs(y="Number of Evals", x="Packages", title="Evals distribution in the packages - boxplot (outliers removed)")
 ```
@@ -101,17 +88,16 @@ ggplot(evalCntPerPkgMod , aes(x = "" , y = n)) +
 ##Some interesting plots 
 
 ```{r}
-knitr::kable(tribble(
+tribble(
   ~A,~B,
   "Total Number of eval occurences combined" , nrow(evaldf),
   "Total Number of packages considered" , "12574",  #the latter is from the output of the evalCrawler.R script
   "Number of packages using eval" , nrow(unique.data.frame(evaldf["pkg"]))
-))
+)
 ```
 
 Distribution as per usage
 ```{r}
-# Eval occurences per use
 knitr::kable(dplyr::count(evaldf , use) , col.names = c("Usage" , "Frequency"))
 ```
 
@@ -119,8 +105,7 @@ Files using most evals
 ```{r}
 evalCountPerFile %>% 
   top_n(10, wt=n) %>% 
-  arrange(desc(n)) %>% 
-  knitr::kable()
+  arrange(desc(n))
 ```
 
 Plot number of evals vs number of chars in files
@@ -129,9 +114,10 @@ charCountPerFile <-
   evaldf %>%
   group_by(path) %>%
   summarise(lineCount = first(lineCount), charCount = first(charCount), pkg = first(pkg))
+	
 charNdEvalCountPerFile <- merge(charCountPerFile , evalCountPerFile)
 
-ggplot(data = charNdEvalCountPerFile, mapping = aes(x = charCount, y = n)) + 
+ggplot(data = charNdEvalCountPerFile, mapping = aes(x = charCount, y = n)) +
   geom_point() + 
   labs(y="Number of Evals", x="Number of chars", title="Eval usage per char in files")
 ```
@@ -139,14 +125,20 @@ ggplot(data = charNdEvalCountPerFile, mapping = aes(x = charCount, y = n)) +
 Plot number of evals vs number of lines in pkgs
 ```{r}
 slocdf <- read_csv("sloc.csv")
+
 lineCountPerPkg <-
-  slocdf %>%
+	slocdf %>%
   filter(language == "R") %>%
   select(pkg = package , code)
+
 lineNdEvalPerPkg <- merge( evalCntPerPkg , lineCountPerPkg , all = FALSE)
+
 ggplot(data = lineNdEvalPerPkg, mapping = aes(x = code, y = n)) +
   geom_point() +
   labs(y="Number of Evals", x="Number of lines", title="Eval usage per lines in packages")
+```
+Plot without the top-outlier
+```{r}
 ggplot(data = filter(lineNdEvalPerPkg , n < 1000), mapping = aes(x = code, y = n)) +
   geom_point() +
   labs(y="Number of Evals", x="Number of lines", title="Eval usage per lines in packages (with less than 1000 evals)")
@@ -155,17 +147,16 @@ ggplot(data = filter(lineNdEvalPerPkg , n < 1000), mapping = aes(x = code, y = n
 ## Eval occurences in folders inside of packages
 ```{r}
 evaldf <- 
-  evaldf %>% 
+	evaldf %>% 
   rowwise() %>% 
-  mutate(folder = strsplit(path, split="/")[[1]][7] ,extension = file_ext(path)  )
-evalCntPerFolder <- dplyr::count(evaldf , folder)
+  mutate(folder = strsplit(path, split="/")[[1]][7] ,extension = file_ext(path))
+evalCntPerFolder <- dplyr::count(evaldf, folder)
 
 knitr::kable(head(arrange(evalCntPerFolder, desc(n)) , 20) , col.names = c("Folder" , "Number of evals"))
-ggplot(evalCntPerFolder , aes(n)) + 
-  geom_histogram(bins=50) + 
-  scale_x_log10() + 
-  labs(y="Number of Folders", x="Number of Evals", title="Evals distribution in the folders - histogram")
+```
 
+Distribution of evals found in different file types
+```{r}
 evalCntPerExtension <- dplyr::count(evaldf , extension)
 knitr::kable(head(arrange(evalCntPerExtension, desc(n)) , 10) , col.names = c("File Extension  " , "Number of evals"))
 ```
