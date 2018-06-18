@@ -64,15 +64,15 @@ evalCountPerFile <- dplyr::count(evaldf, path)
 Top Outliers
 ```{r}
 ##top outliers
-evalCountPerFile %>% 
+evalCntPerPkg %>% 
   top_n(5, wt=n) %>% 
   arrange(desc(n))
 ```
 
 Bottom Outliers
 ```{r}
-evalCountPerFile %>% 
-  top_n(5, wt=n) %>% 
+evalCntPerPkg %>% 
+  top_n(5, wt= -n) %>% 
   arrange(n)
 ```
 
