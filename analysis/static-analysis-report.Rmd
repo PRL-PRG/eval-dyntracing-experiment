@@ -44,8 +44,8 @@ Eval distribution in packages - histogram plot
 ```{r}
 ggplot(evalCntPerPkg , aes(n)) +
   geom_histogram(bins=50) +
-  scale_x_log10() +
-  labs(y="Number of projects", x="Number of Evals (log-scaled)", title="Evals distribution in the packages - histogram")
+  scale_x_log10(breaks = c(2,3,4,5,6,7,10,15,25,50,100,500,1000,2000)) +
+  labs(y="Number of projects", x="Number of Evals (log-scaled)", title="Evals distribution in the packages (with atleast 1 occurence) - histogram")
 ```
 
 Exploring outliers
