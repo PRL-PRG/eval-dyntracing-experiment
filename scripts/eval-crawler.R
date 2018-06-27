@@ -18,37 +18,37 @@ REGEX <- list(
 )
 
 #read a file as a string and returnEvalsFromString()
-fileCrawlOne <- function(regex, file, pkgName){
-	lines <- readLines(file)
-	lineCount <- length(lines)
+file_crawl_one <- function(regex, file, pkg_name){
+	lines <- read_lines(file)
+	line_count <- length(lines)
 	lines <- gsub("(^(([\\s\\t]*)?#)).*", "\n", lines, perl = TRUE)
 	
-	lineNs <- lineNumbers(lines, regex)
+	line_ns <- line_numbers(lines, regex)
 	
 	str <- str_c(lines, collapse = "\n")
 
-	df <- returnEvalsFromString(lineNs, str, pkgName, file, lineCount, regex)
+	df <- return_evals_from_string(line_ns, str, pkg_name, file, line_count, regex)
 	df
 }
 
 #for each file in the package, for each regex, fileCrawlOne()
-evalCrawl <- function(dir, libAddr){
+eval_crawl <- function(dir, lib_addr){
 	print(dir)
-	pkgName <- dir
-	pkgAddr <- paste(libAddr, pkgName, sep = "/")
-	fileLists <- list.files(path = pkgAddr, recursive = TRUE, pattern = "\\.((R)|(Rd)|(Rmd)|(rmd)|(r)|(rd))$", full.names = TRUE)
+	pkg_name <- dir
+	pkg_addr <- paste(lib_addr, pkg_name, sep = "/")
+	file_lists <- list.files(path = pkg_addr, recursive = TRUE, pattern = "\\.((R)|(Rd)|(Rmd)|(rmd)|(r)|(rd))$", full.names = TRUE)
 	
-	dfs <- map_dfr(fileLists, function(file) map_dfr(REGEX, ~ fileCrawlOne(., file, pkgName)))
+	dfs <- map_dfr(file_lists, function(file) map_dfr(REGEX, ~ file_crawl_one(., file, pkgName)))
 
 	df <- bind_rows(dfs)
 	df
 }
 
 #main function - for each package in library, evalcrawl()
-main <- function(libAddr){
-	dirLists <- list.dirs(path = libAddr, full.names = FALSE, recursive = FALSE)
+main <- function(lib_addr){
+	dir_lists <- list.dirs(path = lib_addr, full.names = FALSE, recursive = FALSE)
 	
-	dfs <- pblapply(dirLists, evalCrawl, libAddr = libAddr, cl = parallel::detectCores())
+	dfs <- pblapply(dir_lists, eval_crawl, lib_addr = lib_addr, cl = parallel::detectCores())
 	
 	df <- bind_rows(dfs)
 	write_csv(df, "evals.csv")
@@ -56,25 +56,25 @@ main <- function(libAddr){
 
 #Lists the indices (or line numbers) of regex matching strings in the vector lst.
 #If there are multiple occurrences in a single vector element, the index (or the line number) is repeated that many times.
-lineNumbers <- function(lst, regex)
+line_numbers <- function(lst, regex)
 {
-	lineNs <- vector()
+	line_ns <- vector()
 	arr <- gregexpr(pattern = regex[1], lst, perl = TRUE)
 	if(length(arr) < 1)
-		return(lineNs)
+		return(line_ns)
 	for(i in 1:length(arr))
 	{
 		if(attr(arr[[i]], "match.length") > 0)
 		{
-			repLines <- rep(i, length(attr(arr[[i]], "match.length") ))
-			lineNs <- c(lineNs, repLines)
+			rep_lines <- rep(i, length(attr(arr[[i]], "match.length") ))
+			line_ns <- c(line_ns, rep_lines)
 		}
 	}
-	lineNs
+	line_ns
 }
 
 #return the arguments of `regex` used at index `ind` in the `str`
-returnArgs <- function(ind, str, regex)
+return_args <- function(ind, str, regex)
 {
 	str <- strsplit(str, "")[[1]]
 	arg = vector()
@@ -86,12 +86,12 @@ returnArgs <- function(ind, str, regex)
 	switch1 <- TRUE		#for -> " permitted (true means you're outside the double quoted section)
 	switch2 <- TRUE		#for -> ' permitted (true means you're outside the single quoted section)
 	switch3 <- TRUE		#for -> # permitted (true means you're outside the comment section)
-	while(bCount != 0)
+	while(b_count != 0)
 	{
 		if(identical(str[i], '(') & switch1 & switch2 & switch3)
-			bCount <- bCount + 1
+			b_count <- b_count + 1
 		else if(identical(str[i], ')') & switch1 & switch2 & switch3)
-			bCount <- bCount - 1
+			b_count <- b_count - 1
 		else if( identical(str[i], '#') & switch1 & switch2){
 			switch3 <- FALSE
 		}
@@ -121,39 +121,39 @@ returnArgs <- function(ind, str, regex)
 }
 
 #from the code of a file as a string, return the required dataframe
-returnEvalsFromString <- function(lineNumber, str, pkg, path, lineCount, regex)
+return_evals_from_string <- function(line_number, str, pkg, path, line_count, regex)
 {
-	evalTable <-
+	eval_table <-
 		data_frame(
 			pkg = character(),
 			path = character(),
-			lineNumber = integer(),
+			line_number = integer(),
 			use = character(),
 			arguments = character(),
-			lineCount = integer(),
-			charCount = integer())
+			line_count = integer(),
+			char_count = integer())
 
 	if(identical(str, character(0)))
-		return(evalTable)
+		return(eval_table)
 	
-	evalIndcs <- gregexpr(pattern = regex[1], str, perl = TRUE)[[1]]
+	eval_indcs <- gregexpr(pattern = regex[1], str, perl = TRUE)[[1]]
 
-	if(length(evalIndcs) < 2){
-		return(evalTable)
+	if(length(eval_indcs) < 2){
+		return(eval_table)
 	}
 	else{
-		args <- lapply(evalIndcs, returnArgs, str = str, regex = regex)
+		args <- lapply(eval_indcs, return_args, str = str, regex = regex)
 
-		evalTable <- 
+		eval_table <- 
 			data_frame(
 				pkg,
 				path,
-				lineNumber,
+				line_number,
 				use = regex[3],
 				arguments=unlist(args),
-				lineCount,
-				charCount=nchar(str))
-		return(evalTable)
+				line_count,
+				char_count=nchar(str))
+		return(eval_table)
 	}
 }
 
