@@ -117,7 +117,7 @@ find_evals <- function(x)
 	else if(is.name(x)) {
 		list()
 	}
-	else if(is.call(x))	{
+	else if(is.call(x)) {
 		children <- unlist(lapply(x, find_evals))
 
 		if(any( c(x[[1]]) %in% c(quote(eval), quote(evalq), quote(local), quote(eval.parent) ) ))
