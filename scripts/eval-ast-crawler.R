@@ -48,7 +48,7 @@ return_evals_from_string <- function( str, pkg, path, line_count) {
 			arg3 = character(),
 			arg4 = character(),
 			line_count = integer()
-			)
+		)
 	if(identical(str, character(0))) {
 		return(eval_table)
 	}
@@ -90,8 +90,7 @@ return_evals_from_string <- function( str, pkg, path, line_count) {
 		}
 	)
 
-	if(!identical(extracted_evals, list()))
-	{
+	if(!identical(extracted_evals, list())) {
 		eval_table <-
 			data_frame(
 				pkg,
@@ -102,15 +101,15 @@ return_evals_from_string <- function( str, pkg, path, line_count) {
 				arg3=unlist(arg[[3]]),
 				arg4=unlist(arg[[4]]),
 				line_count
-				)
+			)
 		return(eval_table)
 	}
 	return(eval_table)
 }
 
 #from a single parsed expression return all the evals present with arguments, recursively
-find_evals <- function(x) 
-{
+find_evals <- function(x) {
+	
 	if(is.atomic(x)) {
 		list()
 	}
